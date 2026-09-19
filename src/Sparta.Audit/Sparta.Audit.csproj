@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../Sparta.SharedKernel/Sparta.SharedKernel.csproj" />
+    <PackageReference Include="DevExpress.ExpressApp.AuditTrail.EFCore" Version="$(DevExpressVersion)" />
+  </ItemGroup>
+</Project>

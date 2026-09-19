@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="DevExpress.ExpressApp.EFCore" Version="$(DevExpressVersion)" />
+    <PackageReference Include="DevExpress.Persistent.BaseImpl.EFCore" Version="$(DevExpressVersion)" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="$(EfVersion)" />
+  </ItemGroup>
+</Project>
