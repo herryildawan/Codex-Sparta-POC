@@ -9,7 +9,7 @@
     <PackageReference Include="DevExpress.ExpressApp.Api.EFCore.All" Version="$(DevExpressVersion)" />
     <PackageReference Include="DevExpress.ExpressApp.Validation" Version="$(DevExpressVersion)" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="$(EfVersion)" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.20" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.9.0" />
   </ItemGroup>

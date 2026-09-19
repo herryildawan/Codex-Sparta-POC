@@ -6,7 +6,7 @@ A practical guide to the code in this repository, reviewed on 19 September 2026.
 
 Sparta.Api is one ASP.NET Core application containing several business modules. Sales and Inventory share authentication and XAF permissions, but each owns its business database. This is a **modular monolith**: modules run in the same process and are deployed together.
 
-The API uses .NET 10, DevExpress XAF Web API 26.1.4 and EF Core 8.0.28. The EF version is deliberately pinned; targeting .NET 10 does not mean this repository uses EF Core 10. See `global.json` and `Directory.Build.props` before changing versions.
+On the `net9` branch, the API uses .NET 9, DevExpress XAF Web API 26.1.4 and EF Core 8.0.28. The EF version is deliberately pinned; targeting .NET 9 does not mean this repository uses EF Core 9. See `global.json`, `Directory.Build.props` and `docs/NET9-VS2022.md` before changing versions.
 
 There is no XAF Blazor, XAF WinForms or XAF Middle Tier application. The separate Sparta Web project is a custom UI that consumes this API.
 
@@ -496,7 +496,7 @@ To use the configured development orchestration:
 dotnet run --project src/Sparta.AppHost --launch-profile http
 ```
 
-AppHost references the four connection strings and API. It also includes the sibling Sparta Web project when that project file exists. Aspire helps coordinate local services and telemetry; it does not replace XAF security, migrations or production deployment design. Check actual startup output before assuming the dashboard is ready. You can run the API directly while diagnosing orchestration.
+AppHost on `net9` uses Aspire 9.5.2 and references the four connection strings and API. The sibling Sparta Web project still targets .NET 10 and is excluded from this branch's orchestration. Aspire helps coordinate local services and telemetry; it does not replace XAF security, migrations or production deployment design. Check actual startup output before assuming the dashboard is ready. You can run the API directly while diagnosing orchestration.
 
 Suggested learning sequence:
 

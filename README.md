@@ -2,7 +2,7 @@
 
 Start with [How to implement Sparta.Api](How%20To%20Implement.md) for the architecture walkthrough, setup, authentication, hands-on API lab and entity implementation exercise.
 
-Standalone ASP.NET Core **10** + DevExpress XAF Web API **26.1.4**, using EF Core **8.0.28** (the pinned EF generation used by the installed XAF template). One deployable API, modular class libraries, central identity and separate business/audit databases. No XAF Blazor, WinForms, or Middle Tier projects or packages.
+Standalone ASP.NET Core **9** on the `net9` branch + DevExpress XAF Web API **26.1.4**, using EF Core **8.0.28**. One deployable API, modular class libraries, central identity and separate business/audit databases. No XAF Blazor, WinForms, or Middle Tier projects or packages. See [Visual Studio 2022 compatibility](docs/NET9-VS2022.md) for package decisions and verification.
 
 ## Projects
 
@@ -22,7 +22,7 @@ Microsoft Entra ID authentication and Swagger authorization code + PKCE are impl
 
 ## Local setup
 
-Prerequisites: .NET SDK 10.0.301 or compatible patch, an authorized DevExpress NuGet source/license, PowerShell 7, and reachable SQL Server. Aspire AppHost uses SDK 13.5.4. No SQL container is required.
+Prerequisites: .NET SDK 9.0.312 or a later 9.0.3xx patch, Visual Studio 2022 17.14 for IDE development, an authorized DevExpress NuGet source/license, PowerShell 7, and reachable SQL Server. Aspire AppHost uses SDK/package 9.5.2 and hosts only the API on this branch. No SQL container is required.
 
 On this development machine, connection strings and JWT secrets are stored in .NET User Secrets under ID `sparta-architecture-poc`. `Seed:Password` is now an empty string, and the nine existing seeded users (including `admin`) use an empty password. User Secrets is development storage, not an encrypted production vault.
 
