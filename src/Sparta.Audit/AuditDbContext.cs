@@ -6,10 +6,12 @@ namespace Sparta.Audit;
 // Optional, DI-provided audit-only save observers (including integration fault injection).
 public interface IAuditSaveInterceptor : Microsoft.EntityFrameworkCore.Diagnostics.ISaveChangesInterceptor { }
 
-public class AuditDbContext(DbContextOptions<AuditDbContext> options) : DbContext(options) {
+public class AuditDbContext(DbContextOptions<AuditDbContext> options) : DbContext(options)
+{
     public DbSet<AuditDataItemPersistent> AuditData => Set<AuditDataItemPersistent>();
     public DbSet<AuditEFCoreWeakReference> AuditReferences => Set<AuditEFCoreWeakReference>();
-    protected override void OnModelCreating(ModelBuilder model) {
+    protected override void OnModelCreating(ModelBuilder model)
+    {
         model.UseDeferredDeletion(this);
         model.HasChangeTrackingStrategy(ChangeTrackingStrategy.ChangingAndChangedNotificationsWithOriginalValues);
         model.Entity<AuditEFCoreWeakReference>().HasMany(p => p.AuditItems).WithOne(p => p.AuditedObject);
@@ -19,19 +21,23 @@ public class AuditDbContext(DbContextOptions<AuditDbContext> options) : DbContex
         // Extend the built-in audit entity with shadow metadata, retaining its native XAF key.
         model.Entity<AuditDataItemPersistent>().Property<string>("TraceId").HasMaxLength(32);
     }
-    private void Stamp() {
-        foreach(var entry in ChangeTracker.Entries<AuditDataItemPersistent>().Where(x => x.State == EntityState.Added)) {
+    private void Stamp()
+    {
+        foreach (var entry in ChangeTracker.Entries<AuditDataItemPersistent>().Where(x => x.State == EntityState.Added))
+        {
             entry.Property("TraceId").CurrentValue = Activity.Current?.TraceId.ToString();
             entry.Entity.ModifiedOn = DateTime.UtcNow;
         }
     }
     public override int SaveChanges(bool acceptAllChangesOnSuccess) { Stamp(); return base.SaveChanges(acceptAllChangesOnSuccess); }
-    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default) {
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
         Stamp(); return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
     }
 }
 
-public class SafeAuditFilter : IAuditFilterDataProvider {
+public class SafeAuditFilter : IAuditFilterDataProvider
+{
     public bool NeedToSave(IAuditDataItemPersistent item) =>
         !(item.PropertyName?.Contains("Password", StringComparison.OrdinalIgnoreCase) == true
           || item.PropertyName?.Contains("Token", StringComparison.OrdinalIgnoreCase) == true);
