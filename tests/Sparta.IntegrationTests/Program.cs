@@ -14,7 +14,6 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Sparta.Audit;
 
 var config = new ConfigurationBuilder().AddUserSecrets<Sparta.WebApi.Program>().AddEnvironmentVariables().Build();
-var password = config["Seed:Password"] ?? throw new Exception("Seed:Password is required.");
 var activities = new ConcurrentBag<Activity>();
 using var listener = new ActivityListener {
     ShouldListenTo = source => source.Name.Contains("SqlClient") || source.Name == "Sparta.Business" || source.Name.Contains("AspNetCore"),
@@ -31,6 +30,11 @@ metrics.Start();
 var root = new DirectoryInfo(AppContext.BaseDirectory);
 while(root != null && !File.Exists(Path.Combine(root.FullName, "Sparta.sln"))) root = root.Parent;
 var contentRoot = Path.Combine(root!.FullName, "src", "Sparta.Api");
+if(args.Contains("--movement-security-only")) {
+    try { await MovementSecurityTests.Run(contentRoot, config); return 0; }
+    catch(Exception error) { Console.Error.WriteLine(error); return 1; }
+}
+var password = config["Seed:Password"] ?? throw new Exception("Seed:Password is required.");
 using var application = new WebApplicationFactory<Sparta.WebApi.Program>().WithWebHostBuilder(b => b.UseEnvironment("Development").UseContentRoot(contentRoot));
 using var client = application.CreateClient();
 var assertions = 0;

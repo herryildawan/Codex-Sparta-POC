@@ -112,6 +112,14 @@ New audit writes stamp UTC time and `TraceId`. Aspire receives OpenTelemetry HTT
 
 ## Verification
 
+Focused movement-reference authorization regression (custom API and native OData, fresh temporary databases):
+
+```powershell
+dotnet run --project tests/Sparta.IntegrationTests -- --movement-security-only
+```
+
+See [movement reference security testing](docs/QA-MOVEMENT-REFERENCE-SECURITY.md) for fixtures, database permissions, coverage and results.
+
 Planned QA: [Material access restricted by role (SEC-MAT-001)](docs/QA-MATERIAL-ROLE-ISOLATION.md). Covers Role X/Material A and Role Y/Material B; execution is pending.
 
 ```powershell
