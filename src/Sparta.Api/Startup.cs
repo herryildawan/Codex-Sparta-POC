@@ -131,7 +131,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment hostEnvir
             options.Providers.Add<GzipCompressionProvider>();
             options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(["application/problem+json"]);
         });
-        services.Configure<BrotliCompressionProviderOptions>(options => options.Level = CompressionLevel.Fastest);
+        services.Configure<BrotliCompressionProviderOptions>(options => options.Level = CompressionLevel.Optimal);
         services.Configure<GzipCompressionProviderOptions>(options => options.Level = CompressionLevel.Fastest);
         
         const string routingScheme = "SpartaBearer";

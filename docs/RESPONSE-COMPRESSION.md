@@ -8,7 +8,7 @@ Sparta.Api uses ASP.NET Core response-compression middleware to reduce the trans
 |---|---|
 | Primary algorithm | Brotli (`br`) |
 | Compatibility fallback | Gzip (`gzip`) |
-| Compression level | `CompressionLevel.Fastest` for both providers |
+| Compression level | Brotli `Optimal`; Gzip `Fastest` |
 | Eligible content | ASP.NET Core default text MIME types plus `application/problem+json` |
 | HTTPS | Enabled explicitly, with the security constraints below |
 | Rollback | `ResponseCompression:Enabled=false` |
@@ -28,7 +28,7 @@ Sparta.Api uses ASP.NET Core response-compression middleware to reduce the trans
 
 - Brotli and Gzip are registered explicitly, in that preference order.
 - Clients negotiate an encoding through `Accept-Encoding`; unsupported or absent encodings leave the response uncompressed.
-- Dynamic responses use the fastest compression level to favor throughput and latency over the smallest possible payload.
+- Brotli uses `Optimal` and Gzip uses `Fastest`, based on a representative Sparta OpenAPI payload rather than a single shared setting.
 - JSON and the framework's other default text MIME types are eligible. `application/problem+json` is added for error responses.
 - HTTPS compression is an explicit application setting rather than an accidental hosting-layer behavior.
 - Operations can turn the feature off through configuration without a rebuild.
@@ -97,9 +97,11 @@ Drawbacks:
 
 Zstandard is not a built-in response-compression provider in ASP.NET Core on .NET 9. A custom or third-party provider would add dependency, interoperability, and proxy-validation costs. Brotli plus Gzip covers the current browser/API-client requirement with no extra package, so Zstandard is deferred until a framework upgrade and measured client demand justify it.
 
-## Why `Fastest`
+## Why the levels differ
 
-Sparta produces dynamic OData and JSON rather than precompressed static assets. `CompressionLevel.Optimal` can reduce output further, but it spends more CPU per request and may worsen tail latency under load. `Fastest` is the safer initial production setting. Change it only after benchmarking representative payloads, concurrency, CPU utilization, response size, and p95/p99 latency.
+Sparta produces dynamic OData and JSON rather than precompressed static assets. During verification, the 883 KB generated OpenAPI response exposed an important streaming trade-off: Brotli at `Fastest` transferred about 87 KB, while Gzip at `Fastest` transferred about 42 KB. Prioritizing Brotli with the same fastest setting would therefore have made the preferred response larger than its fallback for this workload.
+
+Brotli is set to `Optimal` so it provides the expected size advantage on streamed JSON; Gzip remains `Fastest` as the broad-compatibility, lower-CPU fallback. This is a workload-based starting point, not a universal rule. Before changing either level, benchmark representative OData payloads and concurrency while tracking CPU utilization, response size, and p95/p99 latency.
 
 Small responses may gain little or can even grow because of encoding overhead. The middleware has no application-specific minimum body-size setting. If measurements show significant wasted CPU on small bodies, prefer gateway compression with a configured minimum size or introduce a measured custom response-compression policy.
 
@@ -171,6 +173,16 @@ Expected headers:
 | `Accept-Encoding: gzip` | `Content-Encoding: gzip` and `Vary: Accept-Encoding` |
 | No `Accept-Encoding` | No `Content-Encoding` |
 | Feature disabled | No application-generated `Content-Encoding` |
+
+Measured locally against the generated Sparta OpenAPI document in Release configuration:
+
+| Encoding | Transferred bytes | Reduction from 882,881 bytes |
+|---|---:|---:|
+| None | 882,881 | 0% |
+| Gzip / `Fastest` | 41,855 | 95.3% |
+| Brotli / `Optimal` | 13,312 | 98.5% |
+
+These figures validate negotiation and the initial level choice; they are not a substitute for production load testing. OData payload shape, flush behavior, concurrency, proxies, and available CPU can change the result.
 
 Repeat the test against the production HTTPS path or its staging equivalent. If a proxy is present, compare Kestrel-direct and public responses to establish which layer produced the encoding.
 
