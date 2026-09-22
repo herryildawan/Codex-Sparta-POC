@@ -1,5 +1,6 @@
 using Sparta.SharedKernel;
 using System.ComponentModel.DataAnnotations;
+using DevExpress.Persistent.Validation;
 namespace Sparta.Modules.Sales
 {
     public class SalesOrderLine : Entity
@@ -16,10 +17,10 @@ namespace Sparta.Modules.Sales
         [CreationOnly, MaxLength(200)]
         public virtual string ProductNameSnapshot { get; set; } = "";
         
-        [Range(0.001, 1000000)]
+        [Range(0.001, 1000000), RuleRange(DefaultContexts.Save, 0.001, 1000000)]
         public virtual decimal Quantity { get; set; }
         
-        [Range(0, 1000000000)]
+        [Range(0, 1000000000), RuleRange(DefaultContexts.Save, 0, 1000000000)]
         public virtual decimal UnitPrice { get; set; }
         
         public override void OnSaving()
@@ -27,7 +28,7 @@ namespace Sparta.Modules.Sales
             base.OnSaving();
             var catalog = (IProductCatalog?)ObjectSpace.ServiceProvider.GetService(typeof(IProductCatalog));
             var product = catalog?.FindActiveProduct(ProductId)
-                ?? throw new ValidationException("Product is unavailable or access is denied.");
+                ?? throw new System.ComponentModel.DataAnnotations.ValidationException("Product is unavailable or access is denied.");
             if (ObjectSpace.IsNewObject(this))
             {
                 ProductCodeSnapshot = product.Code;

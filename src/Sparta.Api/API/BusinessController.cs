@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using DevExpress.ExpressApp;
 using DevExpress.ExpressApp.Security;
+using DevExpress.Persistent.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Sparta.Modules.Sales;
@@ -9,7 +10,7 @@ using Sparta.WebApi.Telemetry;
 namespace Sparta.WebApi;
 
 [Authorize, ApiController]
-public class BusinessController(IObjectSpaceFactory factory, ISecurityStrategyBase strategy) : ControllerBase
+public class BusinessController(IObjectSpaceFactory factory, ISecurityStrategyBase strategy, IValidator validator) : ControllerBase
 {
     [HttpGet("api/sales/orders/{id:int}")]
     public IActionResult Order(int id)
@@ -61,7 +62,7 @@ public class BusinessController(IObjectSpaceFactory factory, ISecurityStrategyBa
         var order = os.CreateObject<SalesOrder>();
         order.Customer = customer; 
         order.OrderNumber = request.OrderNumber;
-        os.CommitChanges();
+        os.ValidateAndCommit(validator);
 
         SpartaTelemetry.Operations.Add(1, new KeyValuePair<string, object?>("sparta.module", "Sales"), new("operation", "create-order"));
         

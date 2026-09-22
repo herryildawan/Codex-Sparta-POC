@@ -108,6 +108,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment hostEnvir
                 }
             });
         }, Configuration);
+        services.AddScoped<IDataService, ValidatedDataService>();
         
         services.AddControllers().AddOData((options, sp) => options
             .AddRouteComponents("api/odata", new EdmModelBuilder(sp).GetEdmModel(), Microsoft.OData.ODataVersion.V401,

@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using DevExpress.ExpressApp;
 using DevExpress.ExpressApp.Security;
+using DevExpress.Persistent.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Sparta.Modules.Inventory;
@@ -9,7 +10,7 @@ namespace Sparta.WebApi;
 
 // Commands enforce the version the UI actually edited; ordinary reads/creation remain OData.
 [Authorize, ApiController]
-public class ProductCommandsController(IObjectSpaceFactory factory, ISecurityStrategyBase security) : ControllerBase {
+public class ProductCommandsController(IObjectSpaceFactory factory, ISecurityStrategyBase security, IValidator validator) : ControllerBase {
     [HttpPut("api/inventory/products/{id:int}")]
     public IActionResult Update(int id, ProductUpdate request) {
         using var os = factory.CreateObjectSpace<Product>();
@@ -24,7 +25,7 @@ public class ProductCommandsController(IObjectSpaceFactory factory, ISecurityStr
         product.Code = request.Code; product.Name = request.Name;
         product.UnitOfMeasure = request.UnitOfMeasure; product.IsActive = request.IsActive;
         if(request.StandardCost.HasValue) product.StandardCost = request.StandardCost.Value;
-        os.CommitChanges();
+        os.ValidateAndCommit(validator);
         return NoContent();
     }
     [HttpDelete("api/inventory/products/{id:int}")]
@@ -38,7 +39,7 @@ public class ProductCommandsController(IObjectSpaceFactory factory, ISecurityStr
         // Preserve movement history; products already used in stock should be deactivated.
         if(os.GetObjectsQuery<StockMovement>().Any(x => x.ProductId == id))
             return Conflict(new { detail = "This product has stock movements. Mark it inactive instead." });
-        os.Delete(product); os.CommitChanges();
+        os.Delete(product); os.ValidateAndCommit(validator);
         return NoContent();
     }
 }

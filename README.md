@@ -4,6 +4,8 @@ Start with [How to implement Sparta.Api](How%20To%20Implement.md) for the archit
 
 Standalone ASP.NET Core **9** on the `net9` branch + DevExpress XAF Web API **26.1.4**, using EF Core **8.0.28**. One deployable API, modular class libraries, central identity and separate business/audit databases. No XAF Blazor, WinForms, or Middle Tier projects or packages. See [Visual Studio 2022 compatibility](docs/NET9-VS2022.md) for package decisions and verification.
 
+Business writes use the XAF Validation Module for generated OData and custom command endpoints. See [XAF validation for Web API writes](docs/XAF-VALIDATION.md) for the commit pipeline, current rules, error contract, extension guidance, and verification commands.
+
 ## Projects
 
 Microsoft Entra ID authentication and Swagger authorization code + PKCE are implemented. See [Entra setup and account linking](docs/ENTRA.md). Local POC password login can be disabled through configuration; XAF remains the source of business roles and permissions for both providers.

@@ -78,6 +78,12 @@ try {
     var manager = await Login("sales.manager");
     var salesOperator = await Login("sales.operator");
     var admin = await Login("admin");
+    var duplicateProduct = await Call("/api/odata/Product", inventoryManager, HttpMethod.Post,
+        new { Code = "PROD-001", Name = "Duplicate", UnitOfMeasure = "PCS", IsActive = true, StandardCost = 1m });
+    Check(duplicateProduct.Status == 400, "XAF RuleUniqueValue rejects duplicate product code before database commit");
+    var invalidMovement = await Call("/api/odata/StockMovement", inventoryManager, HttpMethod.Post,
+        new { ProductId = 1, WarehouseId = 1, QuantityDelta = 0m, OccurredAt = DateTimeOffset.UtcNow.AddMinutes(-1), Reference = "XAF-INVALID" });
+    Check(invalidMovement.Status == 400, "XAF RuleFromBoolProperty rejects invalid stock quantity");
     var orderNumber = "TEST-" + Guid.NewGuid().ToString("N")[..12];
     var created = await Call("/api/sales/orders", sales, HttpMethod.Post, new { orderNumber, customerId = 1 });
     Check(created.Status == 201, "Custom endpoint creates an audited order");

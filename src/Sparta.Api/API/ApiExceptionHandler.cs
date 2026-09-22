@@ -15,6 +15,7 @@ public sealed class ApiExceptionHandler : IExceptionHandler
     {
         var status = exception switch
         {
+            DevExpress.Persistent.Validation.ValidationException => StatusCodes.Status400BadRequest,
             ValidationException => StatusCodes.Status400BadRequest,
             EFCoreSecurityException => StatusCodes.Status403Forbidden,
             DbUpdateConcurrencyException => StatusCodes.Status409Conflict,
@@ -27,6 +28,7 @@ public sealed class ApiExceptionHandler : IExceptionHandler
         context.Response.StatusCode = status;
         var detail = exception switch
         {
+            DevExpress.Persistent.Validation.ValidationException => exception.Message,
             ValidationException => exception.Message,
             DbUpdateException { InnerException: SqlException { Number: 2601 or 2627 } } => "This code already exists. Enter a unique code.",
             DbUpdateException { InnerException: SqlException { Number: 547 } } => "This record is referenced by other records or contains an unavailable reference.",

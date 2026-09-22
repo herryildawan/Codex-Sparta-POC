@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using DevExpress.ExpressApp;
 using DevExpress.ExpressApp.Security;
+using DevExpress.Persistent.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Sparta.Modules.Inventory;
@@ -8,7 +9,7 @@ using Sparta.Modules.Inventory;
 namespace Sparta.WebApi;
 
 [Authorize, ApiController]
-public class InventoryCommandsController(IObjectSpaceFactory factory, ISecurityStrategyBase security) : ControllerBase
+public class InventoryCommandsController(IObjectSpaceFactory factory, ISecurityStrategyBase security, IValidator validator) : ControllerBase
 {
     private static readonly string[] WarehouseMembers = [nameof(Warehouse.Code), nameof(Warehouse.Name), nameof(Warehouse.IsActive)];
 
@@ -32,7 +33,7 @@ public class InventoryCommandsController(IObjectSpaceFactory factory, ISecurityS
         if (WarehouseMembers.Any(m => !p.CanWrite(os, row, m))) return Forbid();
         if (Convert.ToBase64String(row.RowVersion) != request.RowVersion) return Conflict();
         row.Code = request.Code; row.Name = request.Name; row.IsActive = request.IsActive;
-        os.CommitChanges(); 
+        os.ValidateAndCommit(validator);
         return NoContent();
     }
     
@@ -49,7 +50,7 @@ public class InventoryCommandsController(IObjectSpaceFactory factory, ISecurityS
         if (os.GetObjectsQuery<StockMovement>().Any(x => x.WarehouseId == id))
             return Conflict(new { detail = "This warehouse has stock movements. Mark it inactive instead." });
         
-        os.Delete(row); os.CommitChanges(); return NoContent();
+        os.Delete(row); os.ValidateAndCommit(validator); return NoContent();
     }
 
     [HttpPost("api/inventory/movements")]
@@ -73,7 +74,7 @@ public class InventoryCommandsController(IObjectSpaceFactory factory, ISecurityS
         
         row.Product = product; row.Warehouse = warehouse; row.QuantityDelta = request.QuantityDelta;
         row.OccurredAt = request.OccurredAt.UtcDateTime; row.Reference = request.Reference;
-        os.CommitChanges();
+        os.ValidateAndCommit(validator);
         
         return Created($"/api/odata/StockMovement({row.Id})", new { row.Id });
     }
