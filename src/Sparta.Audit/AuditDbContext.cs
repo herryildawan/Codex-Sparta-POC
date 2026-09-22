@@ -18,6 +18,7 @@ public class AuditDbContext(DbContextOptions<AuditDbContext> options) : DbContex
         model.Entity<AuditEFCoreWeakReference>().HasMany(p => p.OldItems).WithOne(p => p.OldObject);
         model.Entity<AuditEFCoreWeakReference>().HasMany(p => p.NewItems).WithOne(p => p.NewObject);
         model.Entity<AuditEFCoreWeakReference>().HasMany(p => p.UserItems).WithOne(p => p.UserObject);
+
         // Extend the built-in audit entity with shadow metadata, retaining its native XAF key.
         model.Entity<AuditDataItemPersistent>().Property<string>("TraceId").HasMaxLength(32);
     }
