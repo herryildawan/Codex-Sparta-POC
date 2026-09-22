@@ -20,11 +20,14 @@ using Sparta.Modules.Inventory;
 using Sparta.WebApi.JWT;
 
 namespace Sparta.WebApi;
-public class Startup(IConfiguration configuration)
+public class Startup(IConfiguration configuration, IWebHostEnvironment hostEnvironment)
 {
     public IConfiguration Configuration { get; } = configuration;
+    public IWebHostEnvironment HostEnvironment { get; } = hostEnvironment;
+
     public void ConfigureServices(IServiceCollection services)
     {
+        var automaticallyUpdateSchema = HostEnvironment.IsDevelopment();
         var entraEnabled = Configuration.GetValue<bool>("Authentication:Entra:Enabled");
         var localEnabled = Configuration.GetValue("Authentication:Local:Enabled", true);
         if (!entraEnabled && !localEnabled) throw new InvalidOperationException("Enable at least one authentication provider.");
@@ -50,11 +53,11 @@ public class Startup(IConfiguration configuration)
 
             builder.ObjectSpaceProviders
                 // configure the SecurityDbContext with secured EF Core
-                .AddSecuredEFCore(o => { o.PreFetchReferenceProperties(); o.SchemaUpdateOptions.DisableUpdateSchema = true; })
+                .AddSecuredEFCore(o => { o.PreFetchReferenceProperties(); o.SchemaUpdateOptions.DisableUpdateSchema = !automaticallyUpdateSchema; })
                 .WithDbContext<SecurityDbContext>((sp, o) => ConfigureDb(o, "Security"))
 
-                // configure the InventoryDbContext with auditing, using the AuditDbContext for audit logs
-                .AddSecuredEFCore(o => { o.PreFetchReferenceProperties(); o.SchemaUpdateOptions.DisableUpdateSchema = true; })
+                // configure the SalesDbContext with auditing, using the AuditDbContext for audit logs
+                .AddSecuredEFCore(o => { o.PreFetchReferenceProperties(); o.SchemaUpdateOptions.DisableUpdateSchema = !automaticallyUpdateSchema; })
                 .WithAuditedDbContext(contexts => contexts.Configure<SalesDbContext, AuditDbContext>
                 (
                     (sp, o) => ConfigureDb(o, "Sales"), (sp, o) => { ConfigureDb(o, "Audit"); o.AddInterceptors(sp.GetServices<IAuditSaveInterceptor>()); },
@@ -62,7 +65,7 @@ public class Startup(IConfiguration configuration)
                 )
                 
                 // configure the InventoryDbContext with auditing, using the AuditDbContext for audit logs
-                .AddSecuredEFCore(o => { o.PreFetchReferenceProperties(); o.SchemaUpdateOptions.DisableUpdateSchema = true; })
+                .AddSecuredEFCore(o => { o.PreFetchReferenceProperties(); o.SchemaUpdateOptions.DisableUpdateSchema = !automaticallyUpdateSchema; })
                 .WithAuditedDbContext(contexts => contexts.Configure<InventoryDbContext, AuditDbContext>
                 (
                     (sp, o) => ConfigureDb(o, "Inventory"), (sp, o) => { ConfigureDb(o, "Audit"); o.AddInterceptors(sp.GetServices<IAuditSaveInterceptor>()); },
@@ -91,7 +94,18 @@ public class Startup(IConfiguration configuration)
             {
                 application.ApplicationName = "Sparta";
                 application.CheckCompatibilityType = CheckCompatibilityType.DatabaseSchema;
-                application.DatabaseUpdateMode = DatabaseUpdateMode.Never;
+                application.DatabaseUpdateMode = automaticallyUpdateSchema
+                    ? DatabaseUpdateMode.UpdateDatabaseAlways
+                    : DatabaseUpdateMode.Never;
+
+                if (automaticallyUpdateSchema)
+                {
+                    application.DatabaseVersionMismatch += (_, e) =>
+                    {
+                        e.Updater.Update();
+                        e.Handled = true;
+                    };
+                }
             });
         }, Configuration);
         

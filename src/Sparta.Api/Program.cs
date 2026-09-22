@@ -9,6 +9,8 @@ public class Program
         FrameworkSettings.DefaultSettingsCompatibilityMode = FrameworkSettingsCompatibilityMode.Latest;
         DevExpress.ExpressApp.Security.SecurityStrategy.AutoAssociationReferencePropertyMode = DevExpress.ExpressApp.Security.ReferenceWithoutAssociationPermissionsMode.None;
 
+        var builder = WebApplication.CreateBuilder(args);
+
         if (args.Length > 0 && args[0] == "--link-entra")
         {
             if (args.Length != 4) throw new ArgumentException("Usage: --link-entra <Sparta username> <tenant GUID> <Entra user object GUID>");
@@ -33,6 +35,9 @@ public class Program
 
         if (args.Contains("--migrate"))
         {
+            if (builder.Environment.IsDevelopment())
+                throw new InvalidOperationException("Do not apply EF Core migrations to a Development database. Development schema is managed automatically by XAF.");
+
             // Migrate all four databases in order: Security, Sales, Inventory, Audit
             await using var security = new SecurityFactory().CreateDbContext([]);
             await security.Database.MigrateAsync();
@@ -50,10 +55,9 @@ public class Program
             return 0;
         }
 
-        var builder = WebApplication.CreateBuilder(args);
         builder.AddServiceDefaults();
         
-        var startup = new Startup(builder.Configuration);
+        var startup = new Startup(builder.Configuration, builder.Environment);
         startup.ConfigureServices(builder.Services);
         
         var app = builder.Build();

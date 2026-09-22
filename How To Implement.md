@@ -118,7 +118,6 @@ $env:ASPNETCORE_ENVIRONMENT = 'Development'
 ./scripts/Initialize-Local.ps1 -Server BGALT-NAP02 -UserName sa
 dotnet tool restore
 dotnet build Sparta.sln
-dotnet run --project src/Sparta.Api -- --migrate
 dotnet run --project src/Sparta.Api -- --seed
 dotnet run --project src/Sparta.Api --launch-profile http
 ```
@@ -140,7 +139,9 @@ If this machine is already configured, skip initialization. The script generates
 
 Environment variables use double underscores, for example `ConnectionStrings__Inventory`. The migration context factories read User Secrets and environment variables, so appsettings alone is not sufficient for those factories.
 
-`--migrate` applies migrations for all four contexts and exits. `--seed` provisions development data and exits. Normal API startup does not migrate or seed automatically. Seeding is restricted to Development.
+In `Development`, XAF automatically creates and updates the schema for all configured Object Space Providers when the API starts. Do not run `--migrate` against these databases; the command rejects the Development environment to prevent XAF schema changes from diverging from EF migration history. `--seed` provisions development data and exits and remains restricted to Development.
+
+QAS and Production never update schema during normal API startup. Their schemas are updated through the reviewed EF Core migrations by running `--migrate` as a dedicated deployment step. See [Database Schema and Migration Operations](docs/DATABASE-MIGRATIONS.md) for the complete workflow and safeguards.
 
 With the direct HTTP launch profile, open [Swagger](http://localhost:5180/swagger/index.html), [liveness](http://localhost:5180/alive) and [database readiness](http://localhost:5180/health). Swagger and these health endpoints are mapped in Development in the current code.
 
@@ -432,11 +433,11 @@ dotnet ef migrations add AddInventoryCategory `
 
 Migrations live in Sparta.Api even though the DbContext lives in the module. Inspect the generated migration and model snapshot: expect a category table, integer identity, attribution columns, rowversion and unique Code index. Investigate unrelated changes before applying.
 
-Then apply the reviewed migration and provision the new permissions in Development:
+Commit the reviewed migration for later QAS/Production deployment. In Development, start the API so XAF updates the development schema automatically, then provision the new permissions:
 
 ```powershell
-dotnet run --project src/Sparta.Api -- --migrate
 dotnet run --project src/Sparta.Api -- --seed
+dotnet run --project src/Sparta.Api --launch-profile http
 ```
 
 Restart the API, inspect Swagger and test category creation as inventory.manager, read-only access as inventory.reader, duplicate-code rejection and filtered audit retrieval. Add meaningful integration checks for these behaviors.
