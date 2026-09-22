@@ -4,17 +4,17 @@ Sparta remains a standalone Web API. Microsoft.Identity.Web validates Entra acce
 
 ## Local configuration
 
-The supplied tenant `5e56b47d-4cbe-4d80-83f9-d471db3833c6` and API application `98e9dfb4-f878-4463-990e-c057dda38670` are configured in local User Secrets under `Authentication:Entra`. Entra is enabled locally. Local password authentication remains enabled for POC accounts; set `Authentication:Local:Enabled=false` for Entra-only access. This disables local bearer validation and the password-token endpoint. No client secret is required for Swagger PKCE or API token validation.
+The supplied tenant `5e56b47d-4cbe-4d80-83f9-d471db3833c6` and API application `98e9dfb4-f878-4463-990e-c057dda38670` are configured in local User Secrets under `Authentication:Entra`. Entra is enabled locally. Local password authentication remains enabled for POC accounts; set `Authentication:Local:Enabled=false` for Entra-only access. This disables local bearer validation and the password-token endpoint. No client secret is required for Scalar PKCE or API token validation.
 
-The application ID also provisionally serves as `SwaggerClientId`. A separate SPA registration can replace it without changing the API audience. The configured scope name is provisionally `access_as_user`; confirm it against the registration or set `Authentication:Entra:RequiredScope` to the actual scope name, e.g. `WebApi`.
+The application ID also provisionally serves as `SwaggerClientId`. The configuration key retains its historical name but now supplies Scalar's browser client ID. A separate SPA registration can replace it without changing the API audience. The configured scope name is provisionally `access_as_user`; confirm it against the registration or set `Authentication:Entra:RequiredScope` to the actual scope name, e.g. `WebApi`.
 
 ## App registration requirements
 
 1. Use a single-tenant registration. Under Expose an API, use Application ID URI `api://98e9dfb4-f878-4463-990e-c057dda38670` and expose the delegated scope `access_as_user` (or configure the existing scope name).
 2. Set the API manifest's `api.requestedAccessTokenVersion` to `2`. Sparta accepts v2 access tokens with the API client GUID as audience.
-3. Under Authentication, add a **Single-page application** redirect URI `http://localhost:5180/swagger/oauth2-redirect.html`. If using an Aspire or HTTPS address, register that exact origin plus `/swagger/oauth2-redirect.html` too. `/signin-oidc` is not used by this API.
-4. Grant the Swagger client the delegated API permission and consent as required by tenant policy. If using separate registrations, set `SwaggerClientId` to the SPA application ID.
-5. Restart the API, open `/swagger`, choose Authorize → Entra, select the delegated scope, and sign in. Swagger uses authorization code with PKCE.
+3. Under Authentication, add the exact Scalar URL as a **Single-page application** redirect URI, for example `http://localhost:5180/scalar/`. If using an Aspire or HTTPS address, register that exact Scalar URL too. `/signin-oidc` is not used by this API.
+4. Grant the Scalar browser client the delegated API permission and consent as required by tenant policy. If using separate registrations, set `SwaggerClientId` to the SPA application ID.
+5. Restart the API, open `/scalar/`, choose Entra authentication, select the delegated scope, and sign in. Scalar uses authorization code with PKCE.
 
 Portal configuration and real interactive sign-in have not yet been verified. A tenant/application ID alone cannot establish whether scopes, redirect URIs, or consent are configured.
 

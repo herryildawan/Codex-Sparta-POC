@@ -8,7 +8,7 @@ Business writes use the XAF Validation Module for generated OData and custom com
 
 ## Projects
 
-Microsoft Entra ID authentication and Swagger authorization code + PKCE are implemented. See [Entra setup and account linking](docs/ENTRA.md). Local POC password login can be disabled through configuration; XAF remains the source of business roles and permissions for both providers.
+Microsoft Entra ID authentication and Scalar authorization code + PKCE are implemented. See [API documentation with Scalar](docs/API-DOCUMENTATION.md) and [Entra setup and account linking](docs/ENTRA.md). Local POC password login can be disabled through configuration; XAF remains the source of business roles and permissions for both providers.
 
 | Project | Responsibility |
 |---|---|
@@ -46,7 +46,7 @@ Start the API independently:
 dotnet run --project src/Sparta.Api
 ```
 
-API: `http://localhost:5180`. Swagger: `http://localhost:5180/swagger`. Development health endpoints: `/alive` and `/health`.
+API: `http://localhost:5180`. Scalar API reference: `http://localhost:5180/scalar/`. OpenAPI JSON: `http://localhost:5180/swagger/v1/swagger.json`. Development health endpoints: `/alive` and `/health`.
 
 Or start Aspire (stop the standalone API first):
 

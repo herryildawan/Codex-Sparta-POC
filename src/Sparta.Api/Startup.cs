@@ -22,6 +22,8 @@ using Sparta.Security.BusinessObject;
 using Sparta.Modules.Sales.BusinessObject;
 using Sparta.Modules.Inventory.BusinessObjects;
 using Sparta.Api.Services;
+using Sparta.WebApi.Documentation;
+using Scalar.AspNetCore;
 
 namespace Sparta.WebApi;
 public class Startup(IConfiguration configuration, IWebHostEnvironment hostEnvironment)
@@ -187,11 +189,16 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment hostEnvir
         {
             c.EnableAnnotations();
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "Sparta Architecture POC", Version = "v1" });
-            c.AddSecurityDefinition("JWT", new OpenApiSecurityScheme { Type = SecuritySchemeType.Http, Scheme = "bearer", BearerFormat = "JWT" });
-            c.AddSecurityRequirement(new OpenApiSecurityRequirement
+            c.OperationFilter<ScalarOperationTagsFilter>();
+            c.DocumentFilter<ScalarTagGroupsFilter>();
+            if (localEnabled)
             {
-                [new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "JWT" } }] = []
-            });
+                c.AddSecurityDefinition("JWT", new OpenApiSecurityScheme { Type = SecuritySchemeType.Http, Scheme = "bearer", BearerFormat = "JWT" });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    [new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "JWT" } }] = []
+                });
+            }
             if (entraEnabled)
             {
                 var authority = $"https://login.microsoftonline.com/{Configuration["Authentication:Entra:TenantId"]}";
@@ -243,21 +250,40 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment hostEnvir
         app.UseExceptionHandler();
         if (env.IsDevelopment())
         {
-            app.UseSwagger(); app.UseSwaggerUI(options =>
-            {
-                if (Configuration.GetValue<bool>("Authentication:Entra:Enabled"))
-                {
-                    options.OAuthClientId(Configuration["Authentication:Entra:SwaggerClientId"]);
-                    options.OAuthUsePkce();
-                    options.OAuthScopes($"api://{Configuration["Authentication:Entra:ClientId"]}/{Configuration["Authentication:Entra:RequiredScope"] ?? "access_as_user"}");
-                }
-            });
+            app.UseSwagger();
         }
         else { app.UseHsts(); app.UseHttpsRedirection(); }
         app.UseRouting();
         app.UseAuthentication();
         app.UseAuthorization();
-        app.UseEndpoints(endpoints => { endpoints.MapControllers(); endpoints.MapXafEndpoints(); });
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapControllers();
+            endpoints.MapXafEndpoints();
+
+            if (env.IsDevelopment())
+            {
+                endpoints.MapGet("/", () => Results.Redirect("/scalar/"));
+                endpoints.MapScalarApiReference(options =>
+                {
+                    options.WithTitle("Sparta Architecture POC")
+                        .WithOpenApiRoutePattern("/swagger/{documentName}/swagger.json")
+                        .DisableAgent();
+
+                    if (Configuration.GetValue<bool>("Authentication:Entra:Enabled"))
+                    {
+                        var scope = $"api://{Configuration["Authentication:Entra:ClientId"]}/{Configuration["Authentication:Entra:RequiredScope"] ?? "access_as_user"}";
+                        options.AddPreferredSecuritySchemes("Entra")
+                            .AddAuthorizationCodeFlow("Entra", flow =>
+                            {
+                                flow.ClientId = Configuration["Authentication:Entra:SwaggerClientId"];
+                                flow.Pkce = Pkce.Sha256;
+                                flow.SelectedScopes = [scope];
+                            });
+                    }
+                });
+            }
+        });
     }
 }
 
