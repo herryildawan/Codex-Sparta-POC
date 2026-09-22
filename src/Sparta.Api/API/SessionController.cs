@@ -2,8 +2,8 @@ using DevExpress.ExpressApp;
 using DevExpress.ExpressApp.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Sparta.Modules.Inventory;
-using Sparta.Security;
+using Sparta.Modules.Inventory.BusinessObjects;
+using Sparta.Security.BusinessObject;
 
 namespace Sparta.WebApi;
 

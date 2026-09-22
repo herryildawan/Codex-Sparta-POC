@@ -7,7 +7,7 @@ using DevExpress.ExpressApp.ConditionalAppearance;
 using DevExpress.ExpressApp.Security;
 using DevExpress.Persistent.BaseImpl.EF;
 
-namespace Sparta.Security;
+namespace Sparta.Security.BusinessObject;
 
 [Table("PermissionPolicyUserLoginInfo")]
 public class ApplicationUserLoginInfo : BaseObject, ISecurityUserLoginInfo {

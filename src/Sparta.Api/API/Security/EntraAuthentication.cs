@@ -3,7 +3,7 @@ using DevExpress.ExpressApp;
 using DevExpress.ExpressApp.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using Sparta.Security;
+using Sparta.Security.BusinessObject;
 
 namespace Sparta.WebApi.JWT;
 

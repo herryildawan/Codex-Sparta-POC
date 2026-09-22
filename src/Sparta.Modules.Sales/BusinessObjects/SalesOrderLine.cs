@@ -1,7 +1,7 @@
 using Sparta.SharedKernel;
 using System.ComponentModel.DataAnnotations;
 using DevExpress.Persistent.Validation;
-namespace Sparta.Modules.Sales
+namespace Sparta.Modules.Sales.BusinessObject
 {
     public class SalesOrderLine : Entity
     {

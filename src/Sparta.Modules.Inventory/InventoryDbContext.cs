@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Sparta.Modules.Inventory.BusinessObjects;
 using Sparta.SharedKernel;
 namespace Sparta.Modules.Inventory;
 public class InventoryDbContext(DbContextOptions<InventoryDbContext> options) : BusinessDbContext(options)

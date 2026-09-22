@@ -4,9 +4,9 @@ using DevExpress.ExpressApp.Security;
 using DevExpress.Persistent.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Sparta.Modules.Sales;
-using Sparta.Modules.Inventory;
 using Sparta.WebApi.Telemetry;
+using Sparta.Modules.Sales.BusinessObject;
+using Sparta.Modules.Inventory.BusinessObjects;
 namespace Sparta.WebApi;
 
 [Authorize, ApiController]

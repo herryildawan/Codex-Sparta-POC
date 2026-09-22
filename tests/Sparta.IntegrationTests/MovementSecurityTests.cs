@@ -13,8 +13,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Sparta.Audit;
 using Sparta.Modules.Inventory;
+using Sparta.Modules.Inventory.BusinessObjects;
 using Sparta.Modules.Sales;
 using Sparta.Security;
+using Sparta.Security.BusinessObject;
 
 // Real HTTP/XAF/SQL tests. All writes target fresh databases, never the configured catalogs.
 static class MovementSecurityTests {

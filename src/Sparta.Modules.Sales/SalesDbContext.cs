@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Sparta.Modules.Sales.BusinessObject;
 using Sparta.SharedKernel;
 namespace Sparta.Modules.Sales;
 

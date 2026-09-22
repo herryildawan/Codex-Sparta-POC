@@ -1,4 +1,4 @@
-namespace Sparta.Modules.Sales
+namespace Sparta.Modules.Sales.BusinessObject
 {
     public enum OrderStatus 
     { 

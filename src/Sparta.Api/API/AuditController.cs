@@ -3,11 +3,11 @@ using DevExpress.ExpressApp.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Sparta.Modules.Sales;
-using Sparta.Modules.Inventory;
-using Sparta.Security;
 using Sparta.Audit;
 using Sparta.WebApi.DatabaseUpdate;
+using Sparta.Security.BusinessObject;
+using Sparta.Modules.Sales.BusinessObject;
+using Sparta.Modules.Inventory.BusinessObjects;
 namespace Sparta.WebApi;
 
 [Authorize, ApiController]

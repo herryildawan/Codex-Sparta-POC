@@ -2,10 +2,10 @@ using DevExpress.ExpressApp;
 using DevExpress.ExpressApp.Security;
 using DevExpress.Persistent.Base;
 using DevExpress.Persistent.BaseImpl.EF.PermissionPolicy;
-using Sparta.Security;
-using Sparta.Modules.Sales;
-using Sparta.Modules.Inventory;
 using Sparta.SharedKernel;
+using Sparta.Security.BusinessObject;
+using Sparta.Modules.Sales.BusinessObject;
+using Sparta.Modules.Inventory.BusinessObjects;
 namespace Sparta.WebApi.DatabaseUpdate;
 
 public static class PocSeeder

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using DevExpress.Persistent.Validation;
 using Sparta.SharedKernel;
 
-namespace Sparta.Modules.Inventory;
+namespace Sparta.Modules.Inventory.BusinessObjects;
 
 public class Warehouse : Entity
 {

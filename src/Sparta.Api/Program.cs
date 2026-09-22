@@ -1,5 +1,6 @@
 using DevExpress.ExpressApp;
 using Microsoft.EntityFrameworkCore;
+using Sparta.Security.BusinessObject;
 using Sparta.WebApi.DatabaseUpdate;
 
 namespace Sparta.WebApi;
@@ -23,7 +24,7 @@ public class Program
                 throw new InvalidOperationException("Identity is already linked to another user; refusing reassignment.");
             if (existing == null)
             {
-                var login = db.CreateProxy<Sparta.Security.ApplicationUserLoginInfo>();
+                var login = db.CreateProxy<ApplicationUserLoginInfo>();
                 login.LoginProviderName = JWT.EntraAuthentication.Scheme;
                 login.ProviderUserKey = key;
                 login.User = user;
