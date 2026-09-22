@@ -1,4 +1,4 @@
-namespace Sparta.SharedKernel
+namespace Sparta.SharedKernel.Contracts.Inventory
 {
     public interface IProductCatalog
     {

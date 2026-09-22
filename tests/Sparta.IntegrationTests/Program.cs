@@ -30,6 +30,10 @@ metrics.Start();
 var root = new DirectoryInfo(AppContext.BaseDirectory);
 while(root != null && !File.Exists(Path.Combine(root.FullName, "Sparta.sln"))) root = root.Parent;
 var contentRoot = Path.Combine(root!.FullName, "src", "Sparta.Api");
+if(args.Contains("--catalog-only")) {
+    try { await ProductCatalogTests.Run(contentRoot, config); return 0; }
+    catch(Exception error) { Console.Error.WriteLine(error); return 1; }
+}
 if(args.Contains("--movement-security-only")) {
     try { await MovementSecurityTests.Run(contentRoot, config); return 0; }
     catch(Exception error) { Console.Error.WriteLine(error); return 1; }

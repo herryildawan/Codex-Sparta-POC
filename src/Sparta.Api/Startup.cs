@@ -44,7 +44,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment hostEnvir
             !Guid.TryParse(Configuration["Authentication:Entra:ClientId"], out _)))
             throw new InvalidOperationException("Entra requires a specific tenant GUID and API client GUID.");
 
-        services.AddScoped<Sparta.SharedKernel.IProductCatalog, ProductCatalog>();
+        services.AddScoped<Sparta.SharedKernel.Contracts.Inventory.IProductCatalog, ProductCatalog>();
         services.AddScoped<IAuthenticationTokenProvider, JwtTokenProviderService>();
         
         services.AddXafWebApi(builder =>

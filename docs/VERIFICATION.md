@@ -1,5 +1,15 @@
 # Architecture verification
 
+## Product catalog contract lifecycle — 2026-09-22
+
+Release build passed with **0 warnings and 0 errors**. `dotnet run --project tests/Sparta.IntegrationTests -c Release --no-build -- --catalog-only` passed **18 assertions** against four uniquely named temporary databases; cleanup removed those catalogs. These results are scoped to the backend change and do not claim a full-suite or Blazor run.
+
+Coverage: server-generated snapshots despite forged create input; active, missing, unreadable and deactivated product validation on line creation; existing OData lookup permissions/filtering; historical quantity/price changes after product deactivation/rename; immutable ProductId, SalesOrderId and both snapshots; authoritative database verification after accepted and rejected writes.
+
+An earlier invocation used the previous compiled executable before the new switch was available and failed the existing duplicate-product validation check. It is not counted as verification of this change. The rebuilt isolated catalog suite above is the relevant passing run.
+
+See [current architecture decision](MODULAR-CONTRACTS.md), [microservices issue #4](https://github.com/herryildawan/Codex-Sparta-POC/issues/4), and [Blazor backlog #5](https://github.com/herryildawan/Codex-Sparta-POC/issues/5).
+
 ## Planned security scenario
 
 [SEC-MAT-001: material access restricted by role](QA-MATERIAL-ROLE-ISOLATION.md) specifies Role X access to Material A and Role Y access to Material B, including API mutations, related-data leakage, combined roles, and revocation checks. Status: **planned; not automated or executed**. This scenario is separate from the historical results below.

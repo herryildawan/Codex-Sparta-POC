@@ -1,5 +1,5 @@
 using DevExpress.ExpressApp;
-using Sparta.SharedKernel;
+using Sparta.SharedKernel.Contracts.Inventory;
 namespace Sparta.Modules.Inventory.BusinessObjects;
 
 // Cross-module contract: secured access, no Sales dependency or cross-database navigation.

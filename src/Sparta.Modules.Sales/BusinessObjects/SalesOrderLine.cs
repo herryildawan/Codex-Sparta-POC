@@ -1,4 +1,5 @@
 using Sparta.SharedKernel;
+using Sparta.SharedKernel.Contracts.Inventory;
 using System.ComponentModel.DataAnnotations;
 using DevExpress.Persistent.Validation;
 namespace Sparta.Modules.Sales.BusinessObject
@@ -26,14 +27,16 @@ namespace Sparta.Modules.Sales.BusinessObject
         public override void OnSaving()
         {
             base.OnSaving();
-            var catalog = (IProductCatalog?)ObjectSpace.ServiceProvider.GetService(typeof(IProductCatalog));
-            var product = catalog?.FindActiveProduct(ProductId)
+            // Existing lines retain their historical reference and snapshots. CreationOnly
+            // is enforced by BusinessDbContext even when Inventory is no longer readable.
+            if (!ObjectSpace.IsNewObject(this)) return;
+
+            var catalog = ObjectSpace.ServiceProvider.GetService(typeof(IProductCatalog)) as IProductCatalog
+                ?? throw new InvalidOperationException("IProductCatalog is not registered.");
+            var product = catalog.FindActiveProduct(ProductId)
                 ?? throw new System.ComponentModel.DataAnnotations.ValidationException("Product is unavailable or access is denied.");
-            if (ObjectSpace.IsNewObject(this))
-            {
-                ProductCodeSnapshot = product.Code;
-                ProductNameSnapshot = product.Name;
-            }
+            ProductCodeSnapshot = product.Code;
+            ProductNameSnapshot = product.Name;
         }
     }
 }

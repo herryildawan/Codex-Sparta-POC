@@ -1,6 +1,7 @@
 # Sparta Web API: microservices roadmap and delivery plan
 
 Status: proposed implementation plan. No services have been extracted or deployed.
+Tracking: [Inventory-first microservices migration #4](https://github.com/herryildawan/Codex-Sparta-POC/issues/4). Blazor lookup is tracked separately in [#5](https://github.com/herryildawan/Codex-Sparta-POC/issues/5).
 Prepared: 2026-09-19. Scope: existing Sparta API and its connected web client.
 
 ## Objective and approach
@@ -11,6 +12,8 @@ This roadmap authorizes no production cutover by itself. Estimates below are pla
 
 ## Current baseline
 
+2026-09-22 decision: keep contracts in `Sparta.SharedKernel/Contracts/Inventory` for the modular monolith, without a new Contracts project. Product validation/snapshot capture happens on Sales line creation; historical updates preserve snapshots without a catalog re-read. Blazor integration remains planned and reuses OData Product. See [contract decision](MODULAR-CONTRACTS.md). Folder separation alone does not provide independent service deployment.
+
 - Sparta.Api hosts Sales, Inventory, authentication, session capabilities, and audit endpoints in one process.
 - Sales and Inventory already have separate databases and EF contexts. Security and Audit use two additional databases.
 - Sales references products through logical IDs and immutable snapshots. IProductCatalog currently performs an in-process, secured XAF lookup.
@@ -19,7 +22,7 @@ This roadmap authorizes no production cutover by itself. Estimates below are pla
 - Migrations and seeding currently run from the API host; integration tests currently host the API in process and use real configured SQL databases.
 - Audit persistence can fail after a business commit. Stock movement creation currently lacks idempotency. An order does not automatically issue stock; negative stock is allowed.
 
-Evidence: README.md; src/Sparta.Api/Startup.cs; src/Sparta.Modules.Inventory/ProductCatalog.cs; src/Sparta.SharedKernel/Entity.cs; docs/DEVOPS.md.
+Evidence: README.md; src/Sparta.Api/Startup.cs; src/Sparta.Modules.Inventory/BusinessObjects/ProductCatalog.cs; src/Sparta.SharedKernel/Contracts/Inventory/IProductCatalog.cs; src/Sparta.SharedKernel/Entity.cs; docs/DEVOPS.md.
 
 ## Proposed target
 

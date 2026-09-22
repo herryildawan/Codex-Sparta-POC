@@ -8,6 +8,8 @@ Business writes use the XAF Validation Module for generated OData and custom com
 
 ## Projects
 
+See [Inventory contracts and Sales line lifecycle](docs/MODULAR-CONTRACTS.md) for the current modular-monolith decision, OData lookup design and microservices extraction boundary.
+
 Microsoft Entra ID authentication and Scalar authorization code + PKCE are implemented. See [API documentation with Scalar](docs/API-DOCUMENTATION.md), [response compression](docs/RESPONSE-COMPRESSION.md), and [Entra setup and account linking](docs/ENTRA.md). Local POC password login can be disabled through configuration; XAF remains the source of business roles and permissions for both providers.
 
 | Project | Responsibility |

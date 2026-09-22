@@ -54,7 +54,7 @@ Complex stock movement rules use public, non-persistent Boolean properties decor
 - `SalesOrderLine.Quantity`: range `0.001` through `1,000,000`.
 - `SalesOrderLine.UnitPrice`: range `0` through `1,000,000,000`.
 
-The existing product availability lookup in `SalesOrderLine.OnSaving` remains because it crosses the Sales and Inventory database boundary through `IProductCatalog` and also enforces secured product visibility.
+The product availability lookup in `SalesOrderLine.OnSaving` runs on creation only, because it crosses the Sales and Inventory database boundary through `Sparta.SharedKernel.Contracts.Inventory.IProductCatalog` and enforces secured product visibility. Historical quantity/price updates do not re-query Inventory. `BusinessDbContext` continues to reject changes to creation-only references and snapshots. See [contract and lifecycle decision](MODULAR-CONTRACTS.md).
 
 ## Error contract
 
