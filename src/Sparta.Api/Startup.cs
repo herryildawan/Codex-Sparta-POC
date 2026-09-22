@@ -31,8 +31,10 @@ public class Startup(IConfiguration configuration)
         if (entraEnabled && (!Guid.TryParse(Configuration["Authentication:Entra:TenantId"], out _) ||
             !Guid.TryParse(Configuration["Authentication:Entra:ClientId"], out _)))
             throw new InvalidOperationException("Entra requires a specific tenant GUID and API client GUID.");
+
         services.AddScoped<Sparta.SharedKernel.IProductCatalog, ProductCatalog>();
         services.AddScoped<IAuthenticationTokenProvider, JwtTokenProviderService>();
+        
         services.AddXafWebApi(builder =>
         {
             builder.ConfigureOptions(options =>
@@ -47,16 +49,19 @@ public class Startup(IConfiguration configuration)
             builder.Modules.AddValidation().Add<SpartaModule>();
 
             builder.ObjectSpaceProviders
+                // configure the SecurityDbContext with secured EF Core
                 .AddSecuredEFCore(o => { o.PreFetchReferenceProperties(); o.SchemaUpdateOptions.DisableUpdateSchema = true; })
                 .WithDbContext<SecurityDbContext>((sp, o) => ConfigureDb(o, "Security"))
 
+                // configure the InventoryDbContext with auditing, using the AuditDbContext for audit logs
                 .AddSecuredEFCore(o => { o.PreFetchReferenceProperties(); o.SchemaUpdateOptions.DisableUpdateSchema = true; })
                 .WithAuditedDbContext(contexts => contexts.Configure<SalesDbContext, AuditDbContext>
                 (
                     (sp, o) => ConfigureDb(o, "Sales"), (sp, o) => { ConfigureDb(o, "Audit"); o.AddInterceptors(sp.GetServices<IAuditSaveInterceptor>()); },
                     o => o.AuditFilterDataProviderType = typeof(SafeAuditFilter))
                 )
-
+                
+                // configure the InventoryDbContext with auditing, using the AuditDbContext for audit logs
                 .AddSecuredEFCore(o => { o.PreFetchReferenceProperties(); o.SchemaUpdateOptions.DisableUpdateSchema = true; })
                 .WithAuditedDbContext(contexts => contexts.Configure<InventoryDbContext, AuditDbContext>
                 (
@@ -64,8 +69,8 @@ public class Startup(IConfiguration configuration)
                     o => o.AuditFilterDataProviderType = typeof(SafeAuditFilter))
                 )
                 
+                // Add a non-persistent object space provider for transient objects
                 .AddNonPersistent();
-
 
             builder.Security.UseIntegratedMode(options =>
             {
@@ -78,7 +83,9 @@ public class Startup(IConfiguration configuration)
                     ((SecurityStrategy)strategy).PermissionsReloadMode = PermissionsReloadMode.NoCache;
                     ((SecurityStrategy)strategy).AssociationPermissionsMode = AssociationPermissionsMode.Manual;
                 };
-            }).AddPasswordAuthentication().AddAuthenticationProvider<EntraXafAuthenticationProvider>();
+            })
+            .AddPasswordAuthentication()
+            .AddAuthenticationProvider<EntraXafAuthenticationProvider>();
 
             builder.AddBuildStep(application =>
             {
@@ -99,6 +106,7 @@ public class Startup(IConfiguration configuration)
             {
                 if (!localEnabled) return EntraAuthentication.Scheme;
                 if (!entraEnabled) return JwtBearerDefaults.AuthenticationScheme;
+                
                 var header = context.Request.Headers.Authorization.ToString();
                 if (header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
                 {
@@ -116,6 +124,7 @@ public class Startup(IConfiguration configuration)
         {
             var key = Configuration["Authentication:Jwt:IssuerSigningKey"]
                 ?? throw new InvalidOperationException("Configure the JWT key in User Secrets or environment variables.");
+            
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
