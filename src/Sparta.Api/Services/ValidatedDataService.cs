@@ -4,7 +4,7 @@ using DevExpress.ExpressApp.DC;
 using DevExpress.ExpressApp.WebApi.Services;
 using DevExpress.Persistent.Validation;
 
-namespace Sparta.WebApi;
+namespace Sparta.Api.Services;
 
 /// <summary>
 /// Runs XAF validation rules for objects changed through the standard OData endpoints.
@@ -14,12 +14,13 @@ public sealed class ValidatedDataService : DataService
 {
     private readonly IValidator validator;
 
-    public ValidatedDataService(
+    public ValidatedDataService
+    (
         IObjectSpaceFactory objectSpaceFactory,
         ITypesInfo typesInfo,
         IObjectDeltaHandler objectDeltaHandler,
-        IValidator validator)
-        : base(objectSpaceFactory, typesInfo, objectDeltaHandler)
+        IValidator validator
+    ) : base(objectSpaceFactory, typesInfo, objectDeltaHandler)
     {
         this.validator = validator;
     }
@@ -48,7 +49,7 @@ public static class ObjectSpaceValidationExtensions
             DefaultContexts.Save);
 
         if (result.ValidationOutcome == ValidationOutcome.Error)
-            throw new DevExpress.Persistent.Validation.ValidationException(result);
+            throw new ValidationException(result);
     }
 
     public static void ValidateAndCommit(this IObjectSpace objectSpace, IValidator validator)

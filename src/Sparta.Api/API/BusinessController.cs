@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Sparta.WebApi.Telemetry;
 using Sparta.Modules.Sales.BusinessObject;
 using Sparta.Modules.Inventory.BusinessObjects;
+using Sparta.Api.Services;
 namespace Sparta.WebApi;
 
 [Authorize, ApiController]

@@ -21,6 +21,7 @@ using Sparta.WebApi.JWT;
 using Sparta.Security.BusinessObject;
 using Sparta.Modules.Sales.BusinessObject;
 using Sparta.Modules.Inventory.BusinessObjects;
+using Sparta.Api.Services;
 
 namespace Sparta.WebApi;
 public class Startup(IConfiguration configuration, IWebHostEnvironment hostEnvironment)
@@ -33,6 +34,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment hostEnvir
         var automaticallyUpdateSchema = HostEnvironment.IsDevelopment();
         var entraEnabled = Configuration.GetValue<bool>("Authentication:Entra:Enabled");
         var localEnabled = Configuration.GetValue("Authentication:Local:Enabled", true);
+
         if (!entraEnabled && !localEnabled) throw new InvalidOperationException("Enable at least one authentication provider.");
         if (entraEnabled && (!Guid.TryParse(Configuration["Authentication:Entra:TenantId"], out _) ||
             !Guid.TryParse(Configuration["Authentication:Entra:ClientId"], out _)))
@@ -111,6 +113,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment hostEnvir
                 }
             });
         }, Configuration);
+
         services.AddScoped<IDataService, ValidatedDataService>();
         
         services.AddControllers().AddOData((options, sp) => options
