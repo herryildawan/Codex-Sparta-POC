@@ -1,4 +1,5 @@
 using System.Text;
+using System.IO.Compression;
 using DevExpress.ExpressApp;
 using DevExpress.ExpressApp.ApplicationBuilder;
 using DevExpress.ExpressApp.Security;
@@ -8,6 +9,7 @@ using DevExpress.Persistent.BaseImpl.EF.PermissionPolicy;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.OData;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -121,6 +123,16 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment hostEnvir
         services.AddControllers().AddOData((options, sp) => options
             .AddRouteComponents("api/odata", new EdmModelBuilder(sp).GetEdmModel(), Microsoft.OData.ODataVersion.V401,
                 routes => routes.ConfigureXafWebApiServices()).EnableQueryFeatures(100));
+
+        services.AddResponseCompression(options =>
+        {
+            options.EnableForHttps = Configuration.GetValue("ResponseCompression:EnableForHttps", true);
+            options.Providers.Add<BrotliCompressionProvider>();
+            options.Providers.Add<GzipCompressionProvider>();
+            options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(["application/problem+json"]);
+        });
+        services.Configure<BrotliCompressionProviderOptions>(options => options.Level = CompressionLevel.Fastest);
+        services.Configure<GzipCompressionProviderOptions>(options => options.Level = CompressionLevel.Fastest);
         
         const string routingScheme = "SpartaBearer";
         var authentication = services.AddAuthentication(routingScheme).AddPolicyScheme(routingScheme, null, options =>
@@ -247,6 +259,9 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment hostEnvir
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
+        if (Configuration.GetValue("ResponseCompression:Enabled", true))
+            app.UseResponseCompression();
+
         app.UseExceptionHandler();
         if (env.IsDevelopment())
         {
