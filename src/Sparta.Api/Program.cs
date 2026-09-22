@@ -1,6 +1,7 @@
 using DevExpress.ExpressApp;
 using Microsoft.EntityFrameworkCore;
 using Sparta.WebApi.DatabaseUpdate;
+
 namespace Sparta.WebApi;
 public class Program
 {
