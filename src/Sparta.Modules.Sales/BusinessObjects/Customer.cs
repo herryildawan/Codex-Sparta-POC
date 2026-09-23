@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using DevExpress.Persistent.Validation;
-using Sparta.SharedKernel;
+using Sparta.SharedKernel.Abstracts;
 namespace Sparta.Modules.Sales.BusinessObject;
 
 public class Customer : Entity 

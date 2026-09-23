@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Sparta.SharedKernel.Abstracts;
 using System.ComponentModel.DataAnnotations;
 
 namespace Sparta.SharedKernel;

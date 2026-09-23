@@ -6,6 +6,8 @@ Standalone ASP.NET Core **9** on the `net9` branch + DevExpress XAF Web API **26
 
 Business writes use the XAF Validation Module for generated OData and custom command endpoints. See [XAF validation for Web API writes](docs/XAF-VALIDATION.md) for the commit pipeline, current rules, error contract, extension guidance, and verification commands.
 
+Product mobile-cache synchronization has an SQL Server Change Tracking and OData delta prototype, tracked in [issue #6](https://github.com/herryildawan/Codex-Sparta-POC/issues/6). See [Product delta synchronization](docs/PRODUCT-DELTA-SYNC.md) for the contract, module ownership, security, operations, client algorithm, limitations, and production acceptance criteria.
+
 ## Projects
 
 See [Inventory contracts and Sales line lifecycle](docs/MODULAR-CONTRACTS.md) for the current modular-monolith decision, OData lookup design and microservices extraction boundary.

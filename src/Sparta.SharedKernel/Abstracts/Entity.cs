@@ -4,7 +4,7 @@ using DevExpress.ExpressApp;
 using DevExpress.ExpressApp.Security;
 using DevExpress.ExpressApp.EFCore;
 
-namespace Sparta.SharedKernel;
+namespace Sparta.SharedKernel.Abstracts;
 
 // Plain integer-key business entities. XAF's built-in security/audit classes keep their native keys.
 public abstract class Entity : IXafEntityObject, IObjectSpaceLink

@@ -72,6 +72,33 @@ static class ProductCatalogTests {
                 new { Code = "CAT-TEST", Name = "Catalog Original", UnitOfMeasure = "PCS", IsActive = true });
             Check(product.Status == 201, "Create isolated catalog product");
             var productId = product.Json!["Id"]!.GetValue<int>();
+
+            var initialDelta = await Call("/api/odata/Product/$delta", sales);
+            Check(initialDelta.Status == 200 && initialDelta.Json!["@odata.deltaLink"] != null,
+                "Product delta initial snapshot returns an OData delta link");
+            Check(initialDelta.Json!["value"]!.AsArray().All(item => item!["StandardCost"] == null),
+                "Product delta applies XAF member permission to StandardCost");
+            var initialDeltaLink = initialDelta.Json!["@odata.deltaLink"]!.GetValue<string>();
+
+            var addedForDelta = await Call("/api/odata/Product", inventory, HttpMethod.Post,
+                new { Code = "DELTA-TEST", Name = "Delta Product", UnitOfMeasure = "PCS", IsActive = true });
+            Check(addedForDelta.Status == 201, "Create product after delta baseline");
+            var addedForDeltaId = addedForDelta.Json!["Id"]!.GetValue<int>();
+            var insertDelta = await Call(initialDeltaLink, sales);
+            Check(insertDelta.Status == 200 && insertDelta.Json!["value"]!.AsArray()
+                    .Any(item => item!["Id"]!.GetValue<int>() == addedForDeltaId && item["@removed"] == null),
+                "Product delta returns an insert after the saved baseline");
+            var afterInsertDeltaLink = insertDelta.Json!["@odata.deltaLink"]!.GetValue<string>();
+
+            await ((InventoryDbContext)databases[2]).Products.Where(x => x.Id == addedForDeltaId).ExecuteDeleteAsync();
+            var deleteDelta = await Call(afterInsertDeltaLink, sales);
+            Check(deleteDelta.Status == 200 && deleteDelta.Json!["value"]!.AsArray()
+                    .Any(item => item!["Id"]!.GetValue<int>() == addedForDeltaId
+                        && item["@removed"]!["reason"]!.GetValue<string>() == "deleted"),
+                "Product delta returns a deleted resource tombstone");
+            Check((await Call("/api/odata/Product/$delta", clerk)).Status == 403,
+                "Product delta rejects callers without Inventory read permission");
+
             async Task<int> Order(string token, string number) {
                 var result = await Call("/api/sales/orders", token, HttpMethod.Post, new { orderNumber = number, customerId = 1 });
                 Check(result.Status == 201, "Create order " + number);

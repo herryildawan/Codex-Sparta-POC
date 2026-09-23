@@ -24,6 +24,7 @@ using Sparta.Security.BusinessObject;
 using Sparta.Modules.Sales.BusinessObject;
 using Sparta.Modules.Inventory.BusinessObjects;
 using Sparta.Api.Services;
+using Sparta.Modules.Inventory.Sync;
 using Sparta.WebApi.Documentation;
 using Scalar.AspNetCore;
 
@@ -45,6 +46,9 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment hostEnvir
             throw new InvalidOperationException("Entra requires a specific tenant GUID and API client GUID.");
 
         services.AddScoped<Sparta.SharedKernel.Contracts.Inventory.IProductCatalog, ProductCatalog>();
+        services.AddDataProtection();
+        services.AddScoped<IProductChangeFeed, SqlServerProductChangeFeed>();
+        services.AddSingleton<ProductDeltaTokenService>();
         services.AddScoped<IAuthenticationTokenProvider, JwtTokenProviderService>();
         
         services.AddXafWebApi(builder =>
