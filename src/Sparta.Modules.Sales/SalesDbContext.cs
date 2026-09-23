@@ -1,12 +1,15 @@
 using Microsoft.EntityFrameworkCore;
+using Sparta.Modules.Sales.BusinessObject;
 using Sparta.SharedKernel;
 namespace Sparta.Modules.Sales;
 
-public class SalesDbContext(DbContextOptions<SalesDbContext> options) : BusinessDbContext(options) {
+public class SalesDbContext(DbContextOptions<SalesDbContext> options) : BusinessDbContext(options)
+{
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<SalesOrder> SalesOrders => Set<SalesOrder>();
     public DbSet<SalesOrderLine> SalesOrderLines => Set<SalesOrderLine>();
-    protected override void OnModelCreating(ModelBuilder model) {
+    protected override void OnModelCreating(ModelBuilder model)
+    {
         model.ConfigureBusinessModel();
         model.Entity<Customer>().HasIndex(x => x.Code).IsUnique();
         model.Entity<SalesOrder>().HasIndex(x => x.OrderNumber).IsUnique();

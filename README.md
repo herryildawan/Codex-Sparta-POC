@@ -2,11 +2,17 @@
 
 Start with [How to implement Sparta.Api](How%20To%20Implement.md) for the architecture walkthrough, setup, authentication, hands-on API lab and entity implementation exercise.
 
-Standalone ASP.NET Core **10** + DevExpress XAF Web API **26.1.4**, using EF Core **8.0.28** (the pinned EF generation used by the installed XAF template). One deployable API, modular class libraries, central identity and separate business/audit databases. No XAF Blazor, WinForms, or Middle Tier projects or packages.
+Standalone ASP.NET Core **9** on the `net9` branch + DevExpress XAF Web API **26.1.4**, using EF Core **8.0.28**. One deployable API, modular class libraries, central identity and separate business/audit databases. No XAF Blazor, WinForms, or Middle Tier projects or packages. See [Visual Studio 2022 compatibility](docs/NET9-VS2022.md) for package decisions and verification.
+
+Business writes use the XAF Validation Module for generated OData and custom command endpoints. See [XAF validation for Web API writes](docs/XAF-VALIDATION.md) for the commit pipeline, current rules, error contract, extension guidance, and verification commands.
+
+Product mobile-cache synchronization has an SQL Server Change Tracking and OData delta prototype, tracked in [issue #6](https://github.com/herryildawan/Codex-Sparta-POC/issues/6). See [Product delta synchronization](docs/PRODUCT-DELTA-SYNC.md) for the contract, module ownership, security, operations, client algorithm, limitations, and production acceptance criteria.
 
 ## Projects
 
-Microsoft Entra ID authentication and Swagger authorization code + PKCE are implemented. See [Entra setup and account linking](docs/ENTRA.md). Local POC password login can be disabled through configuration; XAF remains the source of business roles and permissions for both providers.
+See [Inventory contracts and Sales line lifecycle](docs/MODULAR-CONTRACTS.md) for the current modular-monolith decision, OData lookup design and microservices extraction boundary.
+
+Microsoft Entra ID authentication and Scalar authorization code + PKCE are implemented. See [API documentation with Scalar](docs/API-DOCUMENTATION.md), [response compression](docs/RESPONSE-COMPRESSION.md), and [Entra setup and account linking](docs/ENTRA.md). Local POC password login can be disabled through configuration; XAF remains the source of business roles and permissions for both providers.
 
 | Project | Responsibility |
 |---|---|
@@ -22,7 +28,7 @@ Microsoft Entra ID authentication and Swagger authorization code + PKCE are impl
 
 ## Local setup
 
-Prerequisites: .NET SDK 10.0.301 or compatible patch, an authorized DevExpress NuGet source/license, PowerShell 7, and reachable SQL Server. Aspire AppHost uses SDK 13.5.4. No SQL container is required.
+Prerequisites: .NET SDK 9.0.312 or a later 9.0.3xx patch, Visual Studio 2022 17.14 for IDE development, an authorized DevExpress NuGet source/license, PowerShell 7, and reachable SQL Server. Aspire AppHost uses SDK/package 9.5.2 and hosts only the API on this branch. No SQL container is required.
 
 On this development machine, connection strings and JWT secrets are stored in .NET User Secrets under ID `sparta-architecture-poc`. `Seed:Password` is now an empty string, and the nine existing seeded users (including `admin`) use an empty password. User Secrets is development storage, not an encrypted production vault.
 
@@ -44,7 +50,7 @@ Start the API independently:
 dotnet run --project src/Sparta.Api
 ```
 
-API: `http://localhost:5180`. Swagger: `http://localhost:5180/swagger`. Development health endpoints: `/alive` and `/health`.
+API: `http://localhost:5180`. Scalar API reference: `http://localhost:5180/scalar/`. OpenAPI JSON: `http://localhost:5180/swagger/v1/swagger.json`. Development health endpoints: `/alive` and `/health`.
 
 Or start Aspire (stop the standalone API first):
 
@@ -111,6 +117,14 @@ Audit queries require the module audit role plus current record/member permissio
 New audit writes stamp UTC time and `TraceId`. Aspire receives OpenTelemetry HTTP, SQL, runtime and business telemetry; SQL query text is removed and parameters are not enabled. `Sparta.Business` emits custom operation spans and counters. Health checks probe all four database connections. Audit and telemetry have different retention and access requirements.
 
 ## Verification
+
+Focused movement-reference authorization regression (custom API and native OData, fresh temporary databases):
+
+```powershell
+dotnet run --project tests/Sparta.IntegrationTests -- --movement-security-only
+```
+
+See [movement reference security testing](docs/QA-MOVEMENT-REFERENCE-SECURITY.md) for fixtures, database permissions, coverage and results.
 
 Planned QA: [Material access restricted by role (SEC-MAT-001)](docs/QA-MATERIAL-ROLE-ISOLATION.md). Covers Role X/Material A and Role Y/Material B; execution is pending.
 

@@ -1,6 +1,6 @@
 using DevExpress.ExpressApp;
-using Sparta.SharedKernel;
-namespace Sparta.Modules.Inventory;
+using Sparta.SharedKernel.Contracts.Inventory;
+namespace Sparta.Modules.Inventory.BusinessObjects;
 
 // Cross-module contract: secured access, no Sales dependency or cross-database navigation.
 public sealed class ProductCatalog(IObjectSpaceFactory factory) : IProductCatalog {

@@ -13,7 +13,7 @@ Use the organization's existing Git/CI provider; Azure DevOps YAML Pipelines is 
 
 ## On-premises first staging
 
-- Dedicated Windows Server/IIS host with .NET 10 Hosting Bundle, HTTPS certificate and restricted service identity.
+- Dedicated Windows Server/IIS host with the .NET 9 Hosting Bundle for the `net9` branch, HTTPS certificate and restricted service identity.
 - Separate staging Security/Sales/Inventory/Audit databases. BGALT-NAP02 is the current development server, not an implied production target.
 - Versioned publish folders; for reduced downtime, use two API instances behind a reverse proxy/load balancer.
 - OpenTelemetry Collector to an approved persistent log/trace/metric backend.

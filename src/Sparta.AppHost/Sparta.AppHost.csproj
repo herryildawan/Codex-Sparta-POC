@@ -1,16 +1,19 @@
-<Project Sdk="Aspire.AppHost.Sdk/13.5.4">
+<Project Sdk="Microsoft.NET.Sdk">
+  <Sdk Name="Aspire.AppHost.Sdk" Version="9.5.2" />
 
   <ItemGroup>
     <ProjectReference Include="..\Sparta.Api\Sparta.Api.csproj" />
-    <ProjectReference Include="../../../Build Sparta Web/Sparta.Mockups.csproj" Condition="Exists('../../../Build Sparta Web/Sparta.Mockups.csproj')" />
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.5.2" />
+    <!-- Override StreamJsonRpc's vulnerable 2.5.192 dependency without changing its major API. -->
+    <PackageReference Include="MessagePack" Version="2.5.303" />
   </ItemGroup>
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AspireUseCliBundle>true</AspireUseCliBundle>
+    <IsAspireHost>true</IsAspireHost>
     <UserSecretsId>sparta-architecture-poc</UserSecretsId>
   </PropertyGroup>
 

@@ -5,10 +5,11 @@ using DevExpress.ExpressApp.Security;
 using DevExpress.Persistent.Base;
 using DevExpress.Persistent.BaseImpl.EF.PermissionPolicy;
 
-namespace Sparta.Security;
+namespace Sparta.Security.BusinessObject;
 
 [DefaultProperty(nameof(UserName))]
-public class ApplicationUser : PermissionPolicyUser, ISecurityUserWithLoginInfo, ISecurityUserLockout {
+public class ApplicationUser : PermissionPolicyUser, ISecurityUserWithLoginInfo, ISecurityUserLockout
+{
     [Browsable(false)]
     public virtual int AccessFailedCount { get; set; }
 
@@ -22,7 +23,8 @@ public class ApplicationUser : PermissionPolicyUser, ISecurityUserWithLoginInfo,
 
     IEnumerable<ISecurityUserLoginInfo> IOAuthSecurityUser.UserLogins => UserLogins.OfType<ISecurityUserLoginInfo>();
 
-    ISecurityUserLoginInfo ISecurityUserWithLoginInfo.CreateUserLoginInfo(string loginProviderName, string providerUserKey) {
+    ISecurityUserLoginInfo ISecurityUserWithLoginInfo.CreateUserLoginInfo(string loginProviderName, string providerUserKey)
+    {
         ApplicationUserLoginInfo result = ((IObjectSpaceLink)this).ObjectSpace.CreateObject<ApplicationUserLoginInfo>();
         result.LoginProviderName = loginProviderName;
         result.ProviderUserKey = providerUserKey;

@@ -14,7 +14,6 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Sparta.Audit;
 
 var config = new ConfigurationBuilder().AddUserSecrets<Sparta.WebApi.Program>().AddEnvironmentVariables().Build();
-var password = config["Seed:Password"] ?? throw new Exception("Seed:Password is required.");
 var activities = new ConcurrentBag<Activity>();
 using var listener = new ActivityListener {
     ShouldListenTo = source => source.Name.Contains("SqlClient") || source.Name == "Sparta.Business" || source.Name.Contains("AspNetCore"),
@@ -31,6 +30,15 @@ metrics.Start();
 var root = new DirectoryInfo(AppContext.BaseDirectory);
 while(root != null && !File.Exists(Path.Combine(root.FullName, "Sparta.sln"))) root = root.Parent;
 var contentRoot = Path.Combine(root!.FullName, "src", "Sparta.Api");
+if(args.Contains("--catalog-only")) {
+    try { await ProductCatalogTests.Run(contentRoot, config); return 0; }
+    catch(Exception error) { Console.Error.WriteLine(error); return 1; }
+}
+if(args.Contains("--movement-security-only")) {
+    try { await MovementSecurityTests.Run(contentRoot, config); return 0; }
+    catch(Exception error) { Console.Error.WriteLine(error); return 1; }
+}
+var password = config["Seed:Password"] ?? throw new Exception("Seed:Password is required.");
 using var application = new WebApplicationFactory<Sparta.WebApi.Program>().WithWebHostBuilder(b => b.UseEnvironment("Development").UseContentRoot(contentRoot));
 using var client = application.CreateClient();
 var assertions = 0;
@@ -74,6 +82,12 @@ try {
     var manager = await Login("sales.manager");
     var salesOperator = await Login("sales.operator");
     var admin = await Login("admin");
+    var duplicateProduct = await Call("/api/odata/Product", inventoryManager, HttpMethod.Post,
+        new { Code = "PROD-001", Name = "Duplicate", UnitOfMeasure = "PCS", IsActive = true, StandardCost = 1m });
+    Check(duplicateProduct.Status == 400, "XAF RuleUniqueValue rejects duplicate product code before database commit");
+    var invalidMovement = await Call("/api/odata/StockMovement", inventoryManager, HttpMethod.Post,
+        new { ProductId = 1, WarehouseId = 1, QuantityDelta = 0m, OccurredAt = DateTimeOffset.UtcNow.AddMinutes(-1), Reference = "XAF-INVALID" });
+    Check(invalidMovement.Status == 400, "XAF RuleFromBoolProperty rejects invalid stock quantity");
     var orderNumber = "TEST-" + Guid.NewGuid().ToString("N")[..12];
     var created = await Call("/api/sales/orders", sales, HttpMethod.Post, new { orderNumber, customerId = 1 });
     Check(created.Status == 201, "Custom endpoint creates an audited order");

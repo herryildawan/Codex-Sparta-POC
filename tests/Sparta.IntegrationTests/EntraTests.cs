@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
-using Sparta.Security;
+using Sparta.Security.BusinessObject;
 using Sparta.WebApi.DatabaseUpdate;
 using Sparta.WebApi.JWT;
 

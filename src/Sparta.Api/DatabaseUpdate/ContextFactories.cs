@@ -12,9 +12,11 @@ public abstract class ContextFactory<T> : IDesignTimeDbContextFactory<T> where T
         var configuration = new ConfigurationBuilder().AddUserSecrets<Program>().AddEnvironmentVariables().Build();
         var connection = configuration.GetConnectionString(DatabaseName)
             ?? throw new InvalidOperationException($"Configure ConnectionStrings:{DatabaseName} before running migrations.");
+        
         var options = new DbContextOptionsBuilder<T>();
         options.UseSqlServer(connection, sql => sql.MigrationsAssembly(typeof(Program).Assembly.FullName))
             .UseChangeTrackingProxies().UseObjectSpaceLinkProxies().UseLazyLoadingProxies();
+        
         return (T)Activator.CreateInstance(typeof(T), options.Options)!;
     }
 }
