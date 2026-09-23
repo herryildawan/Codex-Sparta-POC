@@ -198,6 +198,8 @@ The current endpoint emits an OData 4.01-compatible JSON delta envelope using MV
 
 ## Verification
 
+Import `postman/Sparta.ProductDelta.postman_collection.json` into Postman to run the complete login, snapshot, insert, update, and delete-delta simulation. The collection stores its JWT, delta link, Product ID, and RowVersion automatically. Start the API and enable Change Tracking on the Development Inventory database before running it.
+
 ```powershell
 dotnet build Sparta.sln -c Release
 dotnet run --project tests/Sparta.IntegrationTests -c Release -- --catalog-only

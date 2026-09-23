@@ -1,0 +1,429 @@
+{
+  "info": {
+    "_postman_id": "f67a0ca8-a509-49a7-b9dc-cbb2e37b11a7",
+    "name": "Sparta - Product Delta Synchronization",
+    "description": "End-to-end Product delta simulation for Sparta.Api. Before running, start the API and enable SQL Server Change Tracking for SpartaInventory.dbo.Products as documented in docs/PRODUCT-DELTA-SYNC.md. Run the requests in order or use Collection Runner. The collection automatically stores the JWT, delta link, Product ID, and latest RowVersion.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get('productCode')) {",
+          "    pm.collectionVariables.set('productCode', `MOBILE-${Date.now()}`);",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5180",
+      "type": "string"
+    },
+    {
+      "key": "username",
+      "value": "inventory.manager",
+      "type": "string"
+    },
+    {
+      "key": "password",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "deltaLink",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "productId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "productCode",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "rowVersion",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Login Inventory Manager",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userName\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/Authentication/Authenticate",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Authentication",
+            "Authenticate"
+          ]
+        },
+        "description": "Authenticates as inventory.manager and stores the returned JWT in the collection variable token. The local POC seed password is empty unless Seed:Password was configured."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Login succeeds', () => pm.response.to.have.status(200));",
+              "const token = pm.response.json();",
+              "pm.expect(token).to.be.a('string').and.not.empty;",
+              "pm.collectionVariables.set('token', token);"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "02 - Initial Product Snapshot",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/odata/Product/$delta?$top=500",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "odata",
+            "Product",
+            "$delta"
+          ],
+          "query": [
+            {
+              "key": "$top",
+              "value": "500"
+            }
+          ]
+        },
+        "description": "Downloads the initial secured Product snapshot. The prototype caps the page size at 500. This request expects the sample catalog to fit in one page and stores the final delta link."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Initial snapshot succeeds', () => pm.response.to.have.status(200));",
+              "pm.test('OData version is 4.01', () => pm.expect(pm.response.headers.get('OData-Version')).to.eql('4.01'));",
+              "const json = pm.response.json();",
+              "pm.test('Snapshot contains value array', () => pm.expect(json.value).to.be.an('array'));",
+              "pm.test('Final snapshot page contains delta link', () => pm.expect(json['@odata.deltaLink']).to.be.a('string').and.not.empty);",
+              "if (json['@odata.nextLink']) {",
+              "    console.warn('Snapshot has another page. Follow @odata.nextLink before continuing.');",
+              "}",
+              "if (json['@odata.deltaLink']) {",
+              "    pm.collectionVariables.set('deltaLink', json['@odata.deltaLink']);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "03 - Create Product After Baseline",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"Code\": \"{{productCode}}\",\n  \"Name\": \"Mobile Delta Test Product\",\n  \"UnitOfMeasure\": \"PCS\",\n  \"StandardCost\": 15000,\n  \"IsActive\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/odata/Product",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "odata",
+            "Product"
+          ]
+        },
+        "description": "Creates a unique Product after the initial baseline. Stores its ID and RowVersion for later update/delete requests."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Product creation succeeds', () => pm.response.to.have.status(201));",
+              "const json = pm.response.json();",
+              "pm.expect(json.Id).to.be.a('number');",
+              "pm.collectionVariables.set('productId', String(json.Id));",
+              "if (json.RowVersion) pm.collectionVariables.set('rowVersion', json.RowVersion);"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "04 - Get Insert Delta",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{deltaLink}}",
+          "host": [
+            "{{deltaLink}}"
+          ]
+        },
+        "description": "Uses the opaque link saved from the initial snapshot. Verifies that the newly created Product appears, stores its authoritative RowVersion, and advances deltaLink."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Insert delta succeeds', () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "const productId = Number(pm.collectionVariables.get('productId'));",
+              "const product = json.value.find(item => item.Id === productId && !item['@removed']);",
+              "pm.test('Created Product appears in delta', () => pm.expect(product).to.exist);",
+              "if (product && product.RowVersion) pm.collectionVariables.set('rowVersion', product.RowVersion);",
+              "pm.test('Response contains next delta link', () => pm.expect(json['@odata.deltaLink']).to.be.a('string').and.not.empty);",
+              "if (json['@odata.deltaLink']) pm.collectionVariables.set('deltaLink', json['@odata.deltaLink']);"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "05 - Update Product",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"Name\": \"Mobile Delta Test Product Updated\",\n  \"StandardCost\": 17500\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/odata/Product({{productId}})",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "odata",
+            "Product({{productId}})"
+          ]
+        },
+        "description": "Updates the Product through the existing generated XAF OData endpoint."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Product update succeeds', () => pm.expect(pm.response.code).to.be.oneOf([200, 204]));"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "06 - Get Update Delta",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{deltaLink}}",
+          "host": [
+            "{{deltaLink}}"
+          ]
+        },
+        "description": "Verifies the updated Product, captures its new RowVersion, and advances deltaLink."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Update delta succeeds', () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "const productId = Number(pm.collectionVariables.get('productId'));",
+              "const product = json.value.find(item => item.Id === productId && !item['@removed']);",
+              "pm.test('Updated Product appears in delta', () => {",
+              "    pm.expect(product).to.exist;",
+              "    pm.expect(product.Name).to.eql('Mobile Delta Test Product Updated');",
+              "    pm.expect(product.StandardCost).to.eql(17500);",
+              "});",
+              "if (product && product.RowVersion) pm.collectionVariables.set('rowVersion', product.RowVersion);",
+              "if (json['@odata.deltaLink']) pm.collectionVariables.set('deltaLink', json['@odata.deltaLink']);"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "07 - Delete Product",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "If-Match",
+            "value": "\"{{rowVersion}}\"",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory/products/{{productId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "inventory",
+            "products",
+            "{{productId}}"
+          ]
+        },
+        "description": "Deletes the test Product using the latest RowVersion. The Product has no stock movements, so deletion should be allowed."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Product deletion succeeds', () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "08 - Get Delete Delta",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{deltaLink}}",
+          "host": [
+            "{{deltaLink}}"
+          ]
+        },
+        "description": "Verifies that the deleted Product is represented by an OData @removed tombstone and advances deltaLink."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Delete delta succeeds', () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "const productId = Number(pm.collectionVariables.get('productId'));",
+              "const removed = json.value.find(item => item.Id === productId && item['@removed']);",
+              "pm.test('Deleted Product appears as tombstone', () => {",
+              "    pm.expect(removed).to.exist;",
+              "    pm.expect(removed['@removed'].reason).to.eql('deleted');",
+              "});",
+              "if (json['@odata.deltaLink']) pm.collectionVariables.set('deltaLink', json['@odata.deltaLink']);"
+            ]
+          }
+        }
+      ],
+      "response": []
+    }
+  ]
+}
